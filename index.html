@@ -9,11 +9,11 @@
         body { font-family: Arial, sans-serif; text-align: center; }
         #imagePreview { max-width: 300px; margin-top: 10px; display: none; }
         #progress { margin-top: 10px; }
-        #error { color: red; }
+        #error { color: red; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h2>고급 OCR 텍스트 추출기</h2>
+    <h2>OCR 텍스트 추출기</h2>
     <input type="file" id="imageInput" accept="image/*" onchange="previewImage()">
     <img id="imagePreview" alt="이미지 미리보기">
     <button onclick="performOCR()">OCR 실행</button>
@@ -40,11 +40,11 @@
         function performOCR() {
             const input = document.getElementById("imageInput").files[0];
             if (!input) {
-                alert("이미지를 선택하세요!");
+                document.getElementById("error").innerText = "❌ 이미지를 선택하세요!";
                 return;
             }
 
-            document.getElementById("progress").innerText = "OCR 처리 중...";
+            document.getElementById("progress").innerText = "🔄 OCR 처리 중...";
             document.getElementById("error").innerText = "";
 
             const reader = new FileReader();
@@ -54,21 +54,24 @@
                     'eng+kor+fra+spa+jpn+chi+ara',  // 주요 언어 지원
                     {
                         logger: m => {
-                            console.log(m);
                             if (m.status === "recognizing text") {
-                                document.getElementById("progress").innerText = `진행률: ${Math.round(m.progress * 100)}%`;
+                                document.getElementById("progress").innerText = `⏳ 진행률: ${Math.round(m.progress * 100)}%`;
                             }
                         }
                     }
                 ).then(({ data: { text } }) => {
                     document.getElementById("outputText").value = text;
-                    document.getElementById("progress").innerText = "OCR 완료!";
+                    document.getElementById("progress").innerText = "✅ OCR 완료!";
                 }).catch(err => {
-                    console.error(err);
-                    document.getElementById("error").innerText = "OCR 실행 중 오류 발생: " + err.message;
+                    document.getElementById("error").innerText = "❌ OCR 오류: " + (err.message || "알 수 없는 오류 발생");
                     document.getElementById("progress").innerText = "";
                 });
             };
+
+            reader.onerror = function() {
+                document.getElementById("error").innerText = "❌ 이미지 파일을 읽는 중 오류 발생!";
+            };
+
             reader.readAsDataURL(input);
         }
     </script>
