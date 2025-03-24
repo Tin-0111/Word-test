@@ -14,8 +14,21 @@
 </head>
 <body>
     <h2>OCR 텍스트 추출기</h2>
+    
     <input type="file" id="imageInput" accept="image/*" onchange="previewImage()">
     <img id="imagePreview" alt="이미지 미리보기">
+    
+    <p>📌 OCR 언어 선택:</p>
+    <select id="language">
+        <option value="eng">영어 (English)</option>
+        <option value="kor">한국어 (Korean)</option>
+        <option value="jpn">일본어 (Japanese)</option>
+        <option value="chi_sim">중국어 (Simplified Chinese)</option>
+        <option value="eng+kor">영어 + 한국어</option>
+        <option value="eng+kor+jpn">영어 + 한국어 + 일본어</option>
+        <option value="eng+kor+jpn+chi_sim">영어 + 한국어 + 일본어 + 중국어</option>
+    </select>
+
     <button onclick="performOCR()">OCR 실행</button>
 
     <p id="progress"></p>
@@ -47,12 +60,14 @@
             document.getElementById("progress").innerText = "🔄 OCR 처리 중...";
             document.getElementById("error").innerText = "";
 
+            const selectedLang = document.getElementById("language").value;
             const reader = new FileReader();
+
             reader.onload = function() {
                 try {
                     Tesseract.recognize(
                         reader.result,
-                        'eng',  // 언어 설정을 'eng'만 먼저 사용 (나중에 추가)
+                        selectedLang,  // 선택한 언어 OCR 실행
                         {
                             logger: m => {
                                 if (m.status === "recognizing text") {
