@@ -3,18 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OCR 텍스트 추출기</title>
+    <title>고급 OCR 텍스트 추출기</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.0.2/tesseract.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #imagePreview { max-width: 300px; margin-top: 10px; display: none; }
+        #progress { margin-top: 10px; }
+    </style>
 </head>
 <body>
-    <h2>OCR 텍스트 추출기</h2>
-    <input type="file" id="imageInput" accept="image/*">
+    <h2>고급 OCR 텍스트 추출기</h2>
+    <input type="file" id="imageInput" accept="image/*" onchange="previewImage()">
+    <img id="imagePreview" alt="이미지 미리보기">
     <button onclick="performOCR()">OCR 실행</button>
+    
+    <p id="progress"></p>
     
     <h3>추출된 텍스트:</h3>
     <textarea id="outputText" rows="10" cols="50"></textarea>
 
     <script>
+        function previewImage() {
+            const input = document.getElementById("imageInput").files[0];
+            if (!input) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById("imagePreview").src = e.target.result;
+                document.getElementById("imagePreview").style.display = "block";
+            };
+            reader.readAsDataURL(input);
+        }
+
         function performOCR() {
             const input = document.getElementById("imageInput").files[0];
             if (!input) {
@@ -22,19 +42,27 @@
                 return;
             }
 
+            document.getElementById("progress").innerText = "OCR 처리 중...";
             const reader = new FileReader();
             reader.onload = function() {
                 Tesseract.recognize(
                     reader.result,
-                    'kor+eng', // 한국어 + 영어 OCR
+                    'ocrb+all', // 모든 언어 지원
                     {
-                        logger: m => console.log(m) // 진행 상태 출력
+                        logger: m => {
+                            console.log(m);
+                            if (m.status === "recognizing text") {
+                                document.getElementById("progress").innerText = `진행률: ${Math.round(m.progress * 100)}%`;
+                            }
+                        }
                     }
                 ).then(({ data: { text } }) => {
                     document.getElementById("outputText").value = text;
+                    document.getElementById("progress").innerText = "OCR 완료!";
                 }).catch(err => {
                     console.error(err);
                     alert("OCR 실행 중 오류 발생!");
+                    document.getElementById("progress").innerText = "";
                 });
             };
             reader.readAsDataURL(input);
