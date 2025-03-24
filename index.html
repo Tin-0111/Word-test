@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>고급 OCR 텍스트 추출기</title>
+    <title>OCR 텍스트 추출기</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.0.2/tesseract.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
         #imagePreview { max-width: 300px; margin-top: 10px; display: none; }
         #progress { margin-top: 10px; }
+        #error { color: red; }
     </style>
 </head>
 <body>
@@ -16,8 +17,9 @@
     <input type="file" id="imageInput" accept="image/*" onchange="previewImage()">
     <img id="imagePreview" alt="이미지 미리보기">
     <button onclick="performOCR()">OCR 실행</button>
-    
+
     <p id="progress"></p>
+    <p id="error"></p>
     
     <h3>추출된 텍스트:</h3>
     <textarea id="outputText" rows="10" cols="50"></textarea>
@@ -43,11 +45,13 @@
             }
 
             document.getElementById("progress").innerText = "OCR 처리 중...";
+            document.getElementById("error").innerText = "";
+
             const reader = new FileReader();
             reader.onload = function() {
                 Tesseract.recognize(
                     reader.result,
-                    'ocrb+all', // 모든 언어 지원
+                    'eng+kor+fra+spa+jpn+chi+ara',  // 주요 언어 지원
                     {
                         logger: m => {
                             console.log(m);
@@ -61,7 +65,7 @@
                     document.getElementById("progress").innerText = "OCR 완료!";
                 }).catch(err => {
                     console.error(err);
-                    alert("OCR 실행 중 오류 발생!");
+                    document.getElementById("error").innerText = "OCR 실행 중 오류 발생: " + err.message;
                     document.getElementById("progress").innerText = "";
                 });
             };
