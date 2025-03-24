@@ -9,7 +9,7 @@
         body { font-family: Arial, sans-serif; text-align: center; }
         #imagePreview { max-width: 300px; margin-top: 10px; display: none; }
         #progress { margin-top: 10px; }
-        #error { color: red; font-weight: bold; }
+        #error { color: red; font-weight: bold; white-space: pre-line; }
     </style>
 </head>
 <body>
@@ -49,23 +49,27 @@
 
             const reader = new FileReader();
             reader.onload = function() {
-                Tesseract.recognize(
-                    reader.result,
-                    'eng+kor+fra+spa+jpn+chi+ara',  // 주요 언어 지원
-                    {
-                        logger: m => {
-                            if (m.status === "recognizing text") {
-                                document.getElementById("progress").innerText = `⏳ 진행률: ${Math.round(m.progress * 100)}%`;
+                try {
+                    Tesseract.recognize(
+                        reader.result,
+                        'eng',  // 언어 설정을 'eng'만 먼저 사용 (나중에 추가)
+                        {
+                            logger: m => {
+                                if (m.status === "recognizing text") {
+                                    document.getElementById("progress").innerText = `⏳ 진행률: ${Math.round(m.progress * 100)}%`;
+                                }
                             }
                         }
-                    }
-                ).then(({ data: { text } }) => {
-                    document.getElementById("outputText").value = text;
-                    document.getElementById("progress").innerText = "✅ OCR 완료!";
-                }).catch(err => {
-                    document.getElementById("error").innerText = "❌ OCR 오류: " + (err.message || "알 수 없는 오류 발생");
-                    document.getElementById("progress").innerText = "";
-                });
+                    ).then(({ data: { text } }) => {
+                        document.getElementById("outputText").value = text;
+                        document.getElementById("progress").innerText = "✅ OCR 완료!";
+                    }).catch(err => {
+                        document.getElementById("error").innerText = "❌ OCR 오류:\n" + err.message;
+                        document.getElementById("progress").innerText = "";
+                    });
+                } catch (err) {
+                    document.getElementById("error").innerText = "❌ 예외 발생:\n" + err.message;
+                }
             };
 
             reader.onerror = function() {
